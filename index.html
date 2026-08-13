@@ -338,6 +338,13 @@
   }
   .player-track::before{content:"♪ ";color:var(--accent-magenta);}
 
+  .mute-hint{
+    display:none;
+    font-size:.68rem;color:var(--accent-amber);
+    margin:-4px 0 9px;
+  }
+  .player.is-muted .mute-hint{display:block;}
+
   .player-progress{
     height:5px;background:var(--bg-inset);border:1px solid var(--border);
     border-radius:2px;overflow:hidden;margin-bottom:11px;cursor:pointer;
@@ -583,6 +590,7 @@
   </div>
   <div class="player-body" id="player-body">
     <div class="player-track" id="player-track">loading playlist…</div>
+    <div class="mute-hint" id="mute-hint">🔇 blocked by browser — click ▶ for sound</div>
     <div class="player-progress" id="player-progress">
       <div class="player-progress-fill" id="player-progress-fill"></div>
     </div>
@@ -822,6 +830,7 @@
         unmuteAttempted = true;
         player.unMute();
       }
+      setTimeout(checkMuteState, 400);
     } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED){
       playBtn.textContent = '▶';
       playBtn.setAttribute('aria-label', 'play');
@@ -829,6 +838,11 @@
     } else if (e.data === YT.PlayerState.CUED){
       updateTrackInfo();
     }
+  }
+
+  function checkMuteState(){
+    var muted = !!(player && player.isMuted && player.isMuted());
+    widget.classList.toggle('is-muted', muted);
   }
 
   function updateTrackInfo(){
@@ -858,6 +872,7 @@
     /* a click is a real user gesture, so this also covers browsers
        that blocked the automatic unMute() right after autoplay */
     if (player.isMuted && player.isMuted()) player.unMute();
+    checkMuteState();
     var state = player.getPlayerState();
     if (state === YT.PlayerState.PLAYING){
       player.pauseVideo();
