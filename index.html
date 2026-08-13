@@ -807,7 +807,7 @@
       }
     });
   }
-  loadApi();
+  setTimeout(loadApi, 1200);
 
   function onStateChange(e){
     if (e.data === YT.PlayerState.PLAYING){
@@ -817,7 +817,7 @@
       startProgress();
       if (!unmuteAttempted){
         unmuteAttempted = true;
-        player.unMute();
+        setTimeout(function(){ player.unMute(); }, 700);
       }
     } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED){
       playBtn.textContent = '▶';
