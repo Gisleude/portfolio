@@ -582,7 +582,7 @@
     <button id="player-toggle" class="player-min" aria-label="collapse player" aria-expanded="true">_</button>
   </div>
   <div class="player-body" id="player-body">
-    <div class="player-track" id="player-track">press ▶ to load playlist</div>
+    <div class="player-track" id="player-track">loading playlist…</div>
     <div class="player-progress" id="player-progress">
       <div class="player-progress-fill" id="player-progress-fill"></div>
     </div>
@@ -768,9 +768,8 @@
   var widget     = document.getElementById('player-widget');
 
   var player = null;
-  var apiReady = false;
-  var wantsPlay = false;
   var progressTimer = null;
+  var unmuteAttempted = false;
 
   toggleBtn.addEventListener('click', function(){
     var collapsed = widget.classList.toggle('collapsed');
@@ -787,7 +786,6 @@
   }
 
   function onApiReady(){
-    apiReady = true;
     player = new YT.Player('yt-player', {
       height: '1',
       width: '1',
@@ -795,19 +793,21 @@
       playerVars: {
         list: PLAYLIST_ID,
         listType: 'playlist',
-        autoplay: 0,
+        autoplay: 1,
+        mute: 1,
         controls: 0,
         disablekb: 1
       },
       events: {
         onReady: function(){
           player.setVolume(Number(volInput.value));
-          if (wantsPlay) player.playVideo();
+          player.playVideo();
         },
         onStateChange: onStateChange
       }
     });
   }
+  loadApi();
 
   function onStateChange(e){
     if (e.data === YT.PlayerState.PLAYING){
@@ -815,6 +815,10 @@
       playBtn.setAttribute('aria-label', 'pause');
       updateTrackInfo();
       startProgress();
+      if (!unmuteAttempted){
+        unmuteAttempted = true;
+        player.unMute();
+      }
     } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED){
       playBtn.textContent = '▶';
       playBtn.setAttribute('aria-label', 'play');
@@ -847,12 +851,6 @@
   }
 
   playBtn.addEventListener('click', function(){
-    if (!apiReady){
-      trackEl.textContent = 'loading playlist…';
-      wantsPlay = true;
-      loadApi();
-      return;
-    }
     if (!player || !player.getPlayerState) return;
     var state = player.getPlayerState();
     if (state === YT.PlayerState.PLAYING){
