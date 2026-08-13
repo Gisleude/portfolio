@@ -321,8 +321,8 @@
   .player-track::before{content:"♪ ";color:var(--accent-magenta);}
 
   .player-progress{
-    height:3px;background:var(--bg-inset);border:1px solid var(--border);
-    border-radius:2px;overflow:hidden;margin-bottom:11px;
+    height:5px;background:var(--bg-inset);border:1px solid var(--border);
+    border-radius:2px;overflow:hidden;margin-bottom:11px;cursor:pointer;
   }
   .player-progress-fill{height:100%;width:0%;background:var(--accent-cyan);box-shadow:0 0 6px rgba(127,231,255,.7);}
 
@@ -565,7 +565,9 @@
   </div>
   <div class="player-body" id="player-body">
     <div class="player-track" id="player-track">press ▶ to load playlist</div>
-    <div class="player-progress"><div class="player-progress-fill" id="player-progress-fill"></div></div>
+    <div class="player-progress" id="player-progress">
+      <div class="player-progress-fill" id="player-progress-fill"></div>
+    </div>
     <div class="player-controls">
       <button id="btn-prev" aria-label="previous track">⏮</button>
       <button id="btn-play" aria-label="play">▶</button>
@@ -663,16 +665,18 @@
 
 <script>
 (function(){
-  var PLAYLIST_ID = 'OLAK5uy_njEagBmrgryEQc4uXlQ-OIkEuzGzQNgs0';
+  var PLAYLIST_ID  = 'OLAK5uy_kt3wGH_GsiuObdyISdqDKa9h4HQ_saBpY';
+  var START_VIDEO  = 'wjYVvXRgskg';
 
-  var trackEl   = document.getElementById('player-track');
-  var fillEl    = document.getElementById('player-progress-fill');
-  var playBtn   = document.getElementById('btn-play');
-  var prevBtn   = document.getElementById('btn-prev');
-  var nextBtn   = document.getElementById('btn-next');
-  var volInput  = document.getElementById('vol');
-  var toggleBtn = document.getElementById('player-toggle');
-  var widget    = document.getElementById('player-widget');
+  var trackEl    = document.getElementById('player-track');
+  var fillEl     = document.getElementById('player-progress-fill');
+  var progressEl = document.getElementById('player-progress');
+  var playBtn    = document.getElementById('btn-play');
+  var prevBtn    = document.getElementById('btn-prev');
+  var nextBtn    = document.getElementById('btn-next');
+  var volInput   = document.getElementById('vol');
+  var toggleBtn  = document.getElementById('player-toggle');
+  var widget     = document.getElementById('player-widget');
 
   var player = null;
   var apiReady = false;
@@ -698,9 +702,10 @@
     player = new YT.Player('yt-player', {
       height: '1',
       width: '1',
+      videoId: START_VIDEO,
       playerVars: {
-        listType: 'playlist',
         list: PLAYLIST_ID,
+        listType: 'playlist',
         autoplay: 0,
         controls: 0,
         disablekb: 1
@@ -776,6 +781,14 @@
   });
   volInput.addEventListener('input', function(){
     if (player && player.setVolume) player.setVolume(Number(volInput.value));
+  });
+  progressEl.addEventListener('click', function(e){
+    if (!player || !player.getDuration) return;
+    var dur = player.getDuration();
+    if (!dur) return;
+    var rect = progressEl.getBoundingClientRect();
+    var ratio = (e.clientX - rect.left) / rect.width;
+    player.seekTo(ratio * dur, true);
   });
 })();
 </script>
