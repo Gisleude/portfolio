@@ -590,7 +590,7 @@
   </div>
   <div class="player-body" id="player-body">
     <div class="player-track" id="player-track">loading playlist…</div>
-    <div class="mute-hint" id="mute-hint">🔇 blocked by browser — click ▶ for sound</div>
+    <div class="mute-hint" id="mute-hint">🔇 autoplaying muted — click ▶ for sound</div>
     <div class="player-progress" id="player-progress">
       <div class="player-progress-fill" id="player-progress-fill"></div>
     </div>
@@ -777,7 +777,6 @@
 
   var player = null;
   var progressTimer = null;
-  var unmuteAttempted = false;
 
   toggleBtn.addEventListener('click', function(){
     var collapsed = widget.classList.toggle('collapsed');
@@ -823,14 +822,12 @@
       playBtn.setAttribute('aria-label', 'pause');
       updateTrackInfo();
       startProgress();
-      /* muted autoplay is reliably allowed by browsers; unmuting an
-         already-playing video right after is generally allowed too,
-         which gets us audible autoplay without a click in most cases */
-      if (!unmuteAttempted){
-        unmuteAttempted = true;
-        player.unMute();
-      }
-      setTimeout(checkMuteState, 400);
+      /* browsers only reliably allow muted autoplay. Unmuting right after
+         with no real user gesture gets flagged as a policy workaround by
+         some browsers, which just re-pauses playback (a quick play/stop
+         flicker) — so we leave it muted and let the hint below invite a
+         real click instead, which reliably unmutes every time */
+      checkMuteState();
     } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED){
       playBtn.textContent = '▶';
       playBtn.setAttribute('aria-label', 'play');
